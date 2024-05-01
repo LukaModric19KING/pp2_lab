@@ -1,113 +1,103 @@
 import pygame
 import random
-
 pygame.init()
-size = 600
-Snake_size = 25
-x, y = random.randrange(0, size, Snake_size), random.randrange(0, size, Snake_size)
-apple = random.randrange(0, size, Snake_size), random.randrange(0, size, Snake_size)
-bomb = random.randrange(0, size, Snake_size), random.randrange(0, size, Snake_size)
-BOMB = pygame.USEREVENT + 1
-APPLE = pygame.USEREVENT + 1
-lenght = 1
-score = 0
-level = 0
-snake = [(x, y)]
-FPS = 10
-dx, dy = 0, 0
-pygame.mixer.music.load('snake.mp3')
-pygame.mixer.music.play(-1)
 
-screen = pygame.display.set_mode([size, size])
+snake_speed = 10
+res = w,h = 700,700
+black = (0, 0, 0)
+white = (255, 255, 255)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+pygame.display.set_caption('snake')
+screen = pygame.display.set_mode((w, h))
 clock = pygame.time.Clock()
-font_of_score = pygame.font.SysFont('Aarial', 22, bold=True)
-font_of_level = pygame.font.SysFont('Aarial', 22, bold=True)
-font_of_end = pygame.font.SysFont('Aarial', 70, bold=True)
 
-pygame.time.set_timer(BOMB, 3000)
-pygame.time.set_timer(APPLE, 5000)
+snake_pos = [50, 50]
+snake_body = [[50, 50],[40, 50]]
+fruit_pos = [random.randrange(1, (w//10)) * 10, random.randrange(1, (h//10)) * 10]
+fruit = True
 
-while True:
-    screen.fill(pygame.Color('black'))
+startdir = 'RIGHT'
+direct = startdir
 
-    [(pygame.draw.rect(screen, pygame.Color('green'), (i, j, Snake_size - 2, Snake_size - 2))) for i, j in snake]
-    pygame.draw.rect(screen, pygame.Color('red'), (*apple, Snake_size, Snake_size))
-    pygame.draw.rect(screen, pygame.Color('yellow'), (*bomb, Snake_size, Snake_size))
-    render_score = font_of_score.render(f'Sc0re: {score}', True, pygame.Color('yellow'))
-    render_level = font_of_level.render(f'Level: {level}', True, pygame.Color('yellow'))
-    screen.blit(render_score, (5, 5))
-    screen.blit(render_level, (5, 20))
-    x += dx * Snake_size
-    y += dy * Snake_size
-    snake.append((x, y))
-    snake = snake[-lenght:]
+def Score(score, level):
+    basicfont = pygame.font.SysFont(None, 30)
+    score_surface = basicfont.render('Your Score : ' + str(score), True, white)
+    score_surface2 = basicfont.render('Your Level : ' + str(level), True, white)
+    screen.blit(score_surface, (0,0))
+    screen.blit(score_surface2, (200,0))
 
-    if snake[-1] == apple:
-        apple = random.randrange(0, size, Snake_size), random.randrange(0, size, Snake_size)
-        lenght += 1
-        FPS += 0.3
-        score += 1
-        if score % 3 == 0:
-            level += 1
-            l = [i for i in range(5, 100, 2)]
-            for i in l:
-                if level == i:
-                    FPS += 3.5
+score = 0
+basicFontForText = pygame.font.SysFont(None, 30)
+cnt=0
+finished = False
+lll = 0
+level = 0
+while not finished:
+	for event in pygame.event.get():
+		if event.type == pygame.QUIT:
+			exit()
+		if event.type == pygame.KEYDOWN:
+			if event.key == pygame.K_UP:
+				direct = 'UP'
+			if event.key == pygame.K_DOWN:
+				direct = 'DOWN'
+			if event.key == pygame.K_LEFT:
+				direct = 'LEFT'
+			if event.key == pygame.K_RIGHT:
+				direct = 'RIGHT'
 
-    if snake[-1] == bomb:
-        while True:
-            render_end = font_of_end.render('GAME OVER', 1, pygame.Color('yellow'))
-            screen.blit(render_end, (size // 2 - 150, size // 3))
-            pygame.display.flip()
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    exit()
+	if direct == 'UP' and startdir != 'DOWN':
+		startdir = 'UP'
+	if direct == 'DOWN' and startdir != 'UP':
+		startdir = 'DOWN'
+	if direct == 'LEFT' and startdir != 'RIGHT':
+		startdir = 'LEFT'
+	if direct == 'RIGHT' and startdir != 'LEFT':
+		startdir = 'RIGHT'
 
-    if (x < 0 or x > size - Snake_size or y < 0 or y > size - Snake_size) or (len(snake) != len(set(snake))):
-        while True:
-            render_end = font_of_end.render('GAME OVER', True, pygame.Color('yellow'))
-            screen.blit(render_end, (size // 2 - 150, size // 3))
-            pygame.display.flip()
-            pygame.mixer.music.stop()
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    exit()
-    # if x < 0: x = size
-    # if x > size: x = -Snake_size
-    # if y < 0: y = size
-    # if y > size: y = -Snake_size
-    # if len(snake) != len(set(snake)):
-    #     while True:
-    #         render_end = font_of_end.render('GAME OVER', 1, pygame.Color('yellow'))
-    #         screen.blit(render_end, (size // 2 - 150, size // 3))
-    #         pygame.display.flip()
-    #         for event in pygame.event.get():
-    #             if event.type == pygame.QUIT:
-    #                 exit()
-    pygame.display.flip()
-    clock.tick(FPS)
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            exit()
-        if event.type == BOMB:
-            bomb = random.randrange(0, size, Snake_size), random.randrange(0, size, Snake_size)
-        if event.type == APPLE:
-            apple = random.randrange(0, size, Snake_size), random.randrange(0, size, Snake_size)
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_RIGHT and dx != -1:
-                dx, dy = 1, 0
-            if event.key == pygame.K_LEFT and dx != 1:
-                dx, dy = -1, 0
-            if event.key == pygame.K_UP and dy != 1:
-                dx, dy = 0, -1
-            if event.key == pygame.K_DOWN and dy != -1:
-                dx, dy = 0, 1
-            #
-            if event.key == pygame.K_d and dx != -1:
-                dx, dy = 1, 0
-            if event.key == pygame.K_a and dx != 1:
-                dx, dy = -1, 0
-            if event.key == pygame.K_w and dy != 1:
-                dx, dy = 0, -1
-            if event.key == pygame.K_s and dy != -1:
-                dx, dy = 0, 1
+	
+	if startdir == 'UP':
+		snake_pos[1] -= 10
+	if startdir == 'DOWN':
+		snake_pos[1] += 10
+	if startdir == 'LEFT':
+		snake_pos[0] -= 10
+	if startdir == 'RIGHT':
+		snake_pos[0] += 10
+
+	
+	snake_body.insert(0, list(snake_pos)) #add [0]
+	if snake_pos[0] == fruit_pos[0] and snake_pos[1] == fruit_pos[1]:
+		score += 1
+		cnt+=1
+		fruit = False
+	else:
+		snake_body.pop() #delete [last]
+	screen.fill(black)
+	if not fruit:
+		fruit_pos = [random.randrange(1, (w//10)) * 10, random.randrange(1, (h//10)) * 10]	
+	fruit = True
+	
+	for pos in range(len(snake_body)):
+		if pos == 0:
+			pygame.draw.circle(screen, RED, (snake_body[pos][0], snake_body[pos][1]), 7.5)
+		else:
+			pygame.draw.circle(screen, GREEN, (snake_body[pos][0], snake_body[pos][1]), 7.5)
+	pygame.draw.circle(screen, white, (fruit_pos[0], fruit_pos[1]), 7.5)
+
+	if snake_pos[0] < 0 or snake_pos[0] > w-10:
+		exit()
+	if snake_pos[1] < 0 or snake_pos[1] > h-10:
+		exit()
+
+	
+	if cnt>=3:
+		snake_speed+=3
+		lll+=1
+		cnt=0
+	Score(score, lll)
+	pygame.display.update()
+	clock.tick(snake_speed)
+pygame.quit()
